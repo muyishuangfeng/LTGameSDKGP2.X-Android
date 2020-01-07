@@ -5,7 +5,9 @@ import android.content.Intent;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.gentop.ltgame.ltgamesdkcore.base.BaseEntry;
 import com.gentop.ltgame.ltgamesdkcore.exception.LTGameError;
+import com.gentop.ltgame.ltgamesdkcore.model.ResultModel;
 import com.sdk.ltgame.ltgoogleplay.util.IabHelper;
 import com.sdk.ltgame.ltgoogleplay.util.IabResult;
 import com.sdk.ltgame.ltgoogleplay.util.Inventory;
@@ -386,7 +388,14 @@ public class GooglePlayHelper {
                         if (result != null) {
                             if (result.getResultModel() != null) {
                                 if (result.getResultModel().getCode() == 200) {
-                                    mListener.onState(mActivityRef.get(), RechargeResult.successOf(result.getResultModel()));
+                                    BaseEntry<ResultModel> entry = new BaseEntry<>();
+                                    ResultModel resultModel = new ResultModel();
+                                    resultModel.setLt_order_id(mOrderID);
+                                    resultModel.setLt_currency(result.getResultModel().getData().getLt_currency());
+                                    resultModel.setLt_price(result.getResultModel().getData().getLt_price());
+                                    entry.setData(resultModel);
+                                    entry.setCode(result.getResultModel().getCode());
+                                    mListener.onState(mActivityRef.get(), RechargeResult.successOf(entry));
                                     if (mHelper == null) {
                                         mHelper = new IabHelper(mActivityRef.get(), mPublicKey);
                                         mHelper.enableDebugLogging(true);

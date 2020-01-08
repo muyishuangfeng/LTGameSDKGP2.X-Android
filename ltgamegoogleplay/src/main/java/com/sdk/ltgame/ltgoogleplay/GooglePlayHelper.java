@@ -2,6 +2,7 @@ package com.sdk.ltgame.ltgoogleplay;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -29,7 +30,6 @@ import java.util.WeakHashMap;
 
 public class GooglePlayHelper {
 
-    private static final String TAG = GooglePlayHelper.class.getSimpleName();
     private static IabHelper mHelper;
     private static boolean mSetupDone = false;
     //订单号
@@ -51,14 +51,17 @@ public class GooglePlayHelper {
     private Map<String, Object> mParams;
     //商品
     private String mSku;
+    //统计
+    private boolean isStats;
 
 
-    GooglePlayHelper(Activity activity, String mPublicKey, int payTest,
+    GooglePlayHelper(Activity activity, String mPublicKey, int payTest,boolean isStats,
                      String sku, String productID, int requestCode, Map<String, Object> mParams,
                      OnRechargeListener mListener) {
         this.mActivityRef = new WeakReference<>(activity);
         this.mPublicKey = mPublicKey;
         this.mPayTest = payTest;
+        this.isStats=isStats;
         this.mSku = sku;
         this.mProductID = productID;
         this.mRequestCode = requestCode;
@@ -388,14 +391,7 @@ public class GooglePlayHelper {
                         if (result != null) {
                             if (result.getResultModel() != null) {
                                 if (result.getResultModel().getCode() == 200) {
-                                    BaseEntry<ResultModel> entry = new BaseEntry<>();
-                                    ResultModel resultModel = new ResultModel();
-                                    resultModel.setLt_order_id(mOrderID);
-                                    resultModel.setLt_currency(result.getResultModel().getData().getLt_currency());
-                                    resultModel.setLt_price(result.getResultModel().getData().getLt_price());
-                                    entry.setData(resultModel);
-                                    entry.setCode(result.getResultModel().getCode());
-                                    mListener.onState(mActivityRef.get(), RechargeResult.successOf(entry));
+                                    mListener.onState(mActivityRef.get(), RechargeResult.successOf(result.getResultModel()));
                                     if (mHelper == null) {
                                         mHelper = new IabHelper(mActivityRef.get(), mPublicKey);
                                         mHelper.enableDebugLogging(true);
@@ -425,7 +421,17 @@ public class GooglePlayHelper {
                                             }
                                         });
                                     }
-
+                                    if (isStats){
+                                        ResultModel resultModel = new ResultModel();
+                                        resultModel.setLt_order_id(mOrderID);
+                                        resultModel.setLt_currency(result.getResultModel().getData().getLt_currency());
+                                        resultModel.setLt_price(result.getResultModel().getData().getLt_price());
+                                        Intent intent = new Intent(Constants.GOOGLE_RECHARGE_RESULT_CODE);
+                                        Bundle bundle = new Bundle();
+                                        bundle.putSerializable(Constants.GOOGLE_RECHARGE_CODE, resultModel);
+                                        intent.putExtras(bundle);
+                                        mActivityRef.get().sendBroadcast(intent);
+                                    }
                                 }
                             }
 

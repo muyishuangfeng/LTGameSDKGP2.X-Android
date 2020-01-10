@@ -51,17 +51,14 @@ public class GooglePlayHelper {
     private Map<String, Object> mParams;
     //商品
     private String mSku;
-    //统计
-    private boolean isStats;
 
 
-    GooglePlayHelper(Activity activity, String mPublicKey, int payTest,boolean isStats,
+    GooglePlayHelper(Activity activity, String mPublicKey, int payTest,
                      String sku, String productID, int requestCode, Map<String, Object> mParams,
                      OnRechargeListener mListener) {
         this.mActivityRef = new WeakReference<>(activity);
         this.mPublicKey = mPublicKey;
         this.mPayTest = payTest;
-        this.isStats=isStats;
         this.mSku = sku;
         this.mProductID = productID;
         this.mRequestCode = requestCode;
@@ -391,7 +388,18 @@ public class GooglePlayHelper {
                         if (result != null) {
                             if (result.getResultModel() != null) {
                                 if (result.getResultModel().getCode() == 200) {
-                                    mListener.onState(mActivityRef.get(), RechargeResult.successOf(result.getResultModel()));
+                                    BaseEntry<ResultModel> entry = new BaseEntry<>();
+                                    ResultModel resultModel = new ResultModel();
+                                    resultModel.setLt_order_id(mOrderID);
+                                    resultModel.setLt_currency(result.getResultModel().getData().getLt_currency());
+                                    resultModel.setLt_price(result.getResultModel().getData().getLt_price());
+                                    entry.setData(resultModel);
+                                    Intent intent = new Intent(Constants.GOOGLE_RECHARGE_RESULT_CODE);
+                                    Bundle bundle = new Bundle();
+                                    bundle.putSerializable(Constants.GOOGLE_RECHARGE_CODE, resultModel);
+                                    intent.putExtras(bundle);
+                                    mActivityRef.get().sendBroadcast(intent);
+                                    mListener.onState(mActivityRef.get(), RechargeResult.successOf(entry));
                                     if (mHelper == null) {
                                         mHelper = new IabHelper(mActivityRef.get(), mPublicKey);
                                         mHelper.enableDebugLogging(true);
@@ -421,17 +429,7 @@ public class GooglePlayHelper {
                                             }
                                         });
                                     }
-                                    if (isStats){
-                                        ResultModel resultModel = new ResultModel();
-                                        resultModel.setLt_order_id(mOrderID);
-                                        resultModel.setLt_currency(result.getResultModel().getData().getLt_currency());
-                                        resultModel.setLt_price(result.getResultModel().getData().getLt_price());
-                                        Intent intent = new Intent(Constants.GOOGLE_RECHARGE_RESULT_CODE);
-                                        Bundle bundle = new Bundle();
-                                        bundle.putSerializable(Constants.GOOGLE_RECHARGE_CODE, resultModel);
-                                        intent.putExtras(bundle);
-                                        mActivityRef.get().sendBroadcast(intent);
-                                    }
+
                                 }
                             }
 

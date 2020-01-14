@@ -394,11 +394,6 @@ public class GooglePlayHelper {
                                     resultModel.setLt_currency(result.getResultModel().getData().getLt_currency());
                                     resultModel.setLt_price(result.getResultModel().getData().getLt_price());
                                     entry.setData(resultModel);
-                                    Intent intent = new Intent(Constants.GOOGLE_RECHARGE_RESULT_CODE);
-                                    Bundle bundle = new Bundle();
-                                    bundle.putSerializable(Constants.GOOGLE_RECHARGE_CODE, resultModel);
-                                    intent.putExtras(bundle);
-                                    mActivityRef.get().sendBroadcast(intent);
                                     mListener.onState(mActivityRef.get(), RechargeResult.successOf(entry));
                                     if (mHelper == null) {
                                         mHelper = new IabHelper(mActivityRef.get(), mPublicKey);
